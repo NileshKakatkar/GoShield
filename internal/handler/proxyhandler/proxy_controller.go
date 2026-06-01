@@ -20,7 +20,7 @@ func NewProxyHandler() ProxyHandler {
 }
 
 func (p *proxyHandler) ForwardRequest(c *fiber.Ctx) error {
-	serverAddr := config.GetServerAddr()
+	serverAddr := config.GetBackendAddr()
 
 	req, err := http.NewRequest(
 		c.Method(),

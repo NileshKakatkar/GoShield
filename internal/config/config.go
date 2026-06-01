@@ -3,28 +3,38 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"goshield/internal/model"
 	"log"
 	"os"
+
+	"goshield/internal/model"
 )
 
-var serverAddr string
+var appConfig model.Config
 
-func LoadServerConfig(path string) {
-	var serverConf model.Server
+func LoadConfig(path string) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		log.Printf("Error while reading config file: %+v\n", err)
+		log.Printf("Error reading config file: %+v\n", err)
 		return
 	}
-	err = json.Unmarshal(data, &serverConf)
-	if err != nil {
-		log.Printf("Error while deserializing data: %+v\n", err)
-		return
-	}
-	serverAddr = fmt.Sprintf("%s://%s:%d", serverConf.HttpMethod, serverConf.ServerAddress, serverConf.ServerPort)
-}
 
-func GetServerAddr() string {
-	return serverAddr
+	if err := json.Unmarshal(data, &appConfig); err != nil {
+		log.Printf("Error unmarshalling config: %+v\n", err)
+		return
+	}
+}
+func GetBackendAddr() string {
+	return fmt.Sprintf(
+		"%s://%s:%d",
+		appConfig.Backend.Protocol,
+		appConfig.Backend.Host,
+		appConfig.Backend.Port,
+	)
+}
+func GetProxyAddr() string {
+	return fmt.Sprintf(
+		"%s:%d",
+		appConfig.Proxy.Host,
+		appConfig.Proxy.Port,
+	)
 }

@@ -1,7 +1,18 @@
 package model
 
-type Server struct {
-	ServerAddress string `json:"server_address"`
-	ServerPort    int    `json:"server_port"`
-	HttpMethod    string `json:"http_method"`
+type Config struct {
+	Proxy   ProxyConfig   `json:"proxy"`
+	Backend BackendConfig `json:"backend"`
+}
+
+type ProxyConfig struct {
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Protocol string `json:"protocol"`
+}
+
+type BackendConfig struct {
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Protocol string `json:"protocol"`
 }

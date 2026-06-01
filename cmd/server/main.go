@@ -18,6 +18,6 @@ func main() {
 	app := fiber.New(fiber.Config{})
 	app.Use(middleware.RateLimiter(100, 1*time.Minute))
 	app.Use(middleware.JWTAuth())
-	config.LoadServerConfig("configs/env_config.conf")
-	log.Fatal(app.Listen(":8000"))
+	config.LoadConfig("configs/env_config.conf")
+	log.Fatal(app.Listen(config.GetProxyAddr()))
 }
