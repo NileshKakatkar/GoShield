@@ -1,4 +1,4 @@
-module GoShield
+module goshield
 
 go 1.24.4
 
