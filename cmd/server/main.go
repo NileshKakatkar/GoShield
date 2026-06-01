@@ -7,6 +7,7 @@ import (
 
 	"goshield/internal/config"
 	"goshield/internal/middleware"
+	"goshield/internal/routes"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -36,7 +37,7 @@ func main() {
 	}))
 
 	config.LoadConfig("configs/env_config.conf")
-
+	routes.NewRoutes().ProxyRoutes(app)
 	if err := app.Listen(config.GetProxyAddr()); err != nil {
 		log.Logger.Errorf("Error while starting server")
 	}

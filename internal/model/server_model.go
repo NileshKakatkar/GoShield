@@ -1,8 +1,8 @@
 package model
 
 type Config struct {
-	Proxy   ProxyConfig   `json:"proxy"`
-	Backend BackendConfig `json:"backend"`
+	Proxy    ProxyConfig     `json:"proxy"`
+	Backends []BackendConfig `json:"backends"`
 }
 
 type ProxyConfig struct {

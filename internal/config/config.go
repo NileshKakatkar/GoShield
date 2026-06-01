@@ -5,11 +5,17 @@ import (
 	"fmt"
 	log "goshield/internal/log"
 	"os"
+	"sync"
 
 	"goshield/internal/model"
 )
 
 var appConfig model.Config
+
+var (
+	current int
+	mu      sync.Mutex
+)
 
 func LoadConfig(path string) {
 	data, err := os.ReadFile(path)
@@ -23,14 +29,27 @@ func LoadConfig(path string) {
 		return
 	}
 }
-func GetBackendAddr() string {
+
+func GetNextBackend() string {
+	mu.Lock()
+	defer mu.Unlock()
+
+	backend := appConfig.Backends[current]
+
+	current = (current + 1) % len(appConfig.Backends)
+
+	return GetBackendAddr(backend)
+}
+
+func GetBackendAddr(backend model.BackendConfig) string {
 	return fmt.Sprintf(
 		"%s://%s:%d",
-		appConfig.Backend.Protocol,
-		appConfig.Backend.Host,
-		appConfig.Backend.Port,
+		backend.Protocol,
+		backend.Host,
+		backend.Port,
 	)
 }
+
 func GetProxyAddr() string {
 	return fmt.Sprintf(
 		"%s:%d",
