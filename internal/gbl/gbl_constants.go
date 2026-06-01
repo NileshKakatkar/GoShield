@@ -1,0 +1,5 @@
+package gbl
+
+const (
+	EmptyString = ""
+)
