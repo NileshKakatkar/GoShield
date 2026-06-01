@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"goshield/internal/log"
 	"sync"
 	"time"
 
@@ -17,6 +18,15 @@ var mu sync.Mutex
 
 func RateLimiter(maxRequest int, window time.Duration) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+
+		path := c.Path()
+
+		switch path {
+		case "/login", "/register":
+			log.Logger.Infof("Skipping validations for the login request")
+			return c.Next()
+		}
+
 		userId, ok := c.Locals("userID").(string)
 
 		if !ok {

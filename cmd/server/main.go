@@ -1,13 +1,15 @@
 package main
 
 import (
-	"log"
+	"goshield/internal/gbl"
+	log "goshield/internal/log"
 	"time"
 
 	"goshield/internal/config"
 	"goshield/internal/middleware"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 func init() {
@@ -15,9 +17,27 @@ func init() {
 }
 
 func main() {
+	log.SetupLogger()
+	log.Logger.Infof("Application starting")
+
 	app := fiber.New(fiber.Config{})
-	app.Use(middleware.RateLimiter(100, 1*time.Minute))
+
 	app.Use(middleware.JWTAuth())
+
+	app.Use(middleware.RateLimiter(
+		100,
+		1*time.Minute),
+	)
+
+	app.Use(logger.New(logger.Config{
+		Format:     "${time} ${protocol} ${host} ${status} - ${latency} ${method} ${path}\n",
+		TimeFormat: gbl.DateTimeDispFmt,
+		Output:     log.GetAccessLogWriter(),
+	}))
+
 	config.LoadConfig("configs/env_config.conf")
-	log.Fatal(app.Listen(config.GetProxyAddr()))
+
+	if err := app.Listen(config.GetProxyAddr()); err != nil {
+		log.Logger.Errorf("Error while starting server")
+	}
 }

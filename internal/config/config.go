@@ -3,7 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	log "goshield/internal/log"
 	"os"
 
 	"goshield/internal/model"
@@ -14,12 +14,12 @@ var appConfig model.Config
 func LoadConfig(path string) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		log.Printf("Error reading config file: %+v\n", err)
+		log.Logger.Infof("Error reading config file: %+v\n", err)
 		return
 	}
 
 	if err := json.Unmarshal(data, &appConfig); err != nil {
-		log.Printf("Error unmarshalling config: %+v\n", err)
+		log.Logger.Infof("Error unmarshalling config: %+v\n", err)
 		return
 	}
 }
