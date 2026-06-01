@@ -45,7 +45,11 @@ func JWTAuth() fiber.Handler {
 				"error": "invalid token",
 			})
 		}
+		claims := token.Claims.(jwt.MapClaims)
 
+		userID := claims["sub"]
+
+		c.Locals("userID", userID)
 		return c.Next()
 	}
 }
