@@ -15,9 +15,13 @@ func JWTAuth() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		path := c.Path()
 
-		switch path {
-		case "/login", "/register":
-			log.Logger.Infof("Skipping validations for the login request")
+		switch {
+		case path == "/login", path == "/register":
+			log.Logger.Infof("Skipping validations for login/register request")
+			return c.Next()
+
+		case strings.Contains(path, "/admin"):
+			log.Logger.Infof("Skipping validations for admin request")
 			return c.Next()
 		}
 

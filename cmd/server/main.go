@@ -45,7 +45,8 @@ func main() {
 		return
 	}
 
-	routes.NewRoutes().ProxyRoutes(app)
+	routes.SetAdminRoutes(app)
+	routes.ProxyRoutes(app)
 
 	if err := app.Listen(config.GetProxyAddr()); err != nil {
 		log.Logger.Errorf("Error while starting server")
