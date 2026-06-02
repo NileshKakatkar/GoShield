@@ -39,7 +39,11 @@ func main() {
 
 	config.LoadConfig("configs/env_config.conf")
 
-	conn.InitDbConn()
+	err := conn.InitDbConn()
+	if err != nil {
+		log.Logger.Errorf("Shutting down application as there is error while connection to database")
+		return
+	}
 
 	routes.NewRoutes().ProxyRoutes(app)
 
