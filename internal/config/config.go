@@ -30,26 +30,6 @@ func LoadConfig(path string) {
 	}
 }
 
-func GetNextBackend() string {
-	mu.Lock()
-	defer mu.Unlock()
-
-	backend := appConfig.Backends[current]
-
-	current = (current + 1) % len(appConfig.Backends)
-
-	return GetBackendAddr(backend)
-}
-
-func GetBackendAddr(backend model.BackendConfig) string {
-	return fmt.Sprintf(
-		"%s://%s:%d",
-		backend.Protocol,
-		backend.Host,
-		backend.Port,
-	)
-}
-
 func GetProxyAddr() string {
 	return fmt.Sprintf(
 		"%s:%d",

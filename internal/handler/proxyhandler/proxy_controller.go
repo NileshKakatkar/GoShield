@@ -2,7 +2,7 @@ package proxyhandler
 
 import (
 	"bytes"
-	"goshield/internal/config"
+	"goshield/internal/service"
 	"io"
 	"net/http"
 
@@ -20,7 +20,13 @@ func NewProxyHandler() ProxyHandler {
 }
 
 func (p *proxyHandler) ForwardRequest(c *fiber.Ctx) error {
-	serverAddr := config.GetNextBackend()
+	serverAddr, err := service.NewLoadBalancer().GetBackendServer()
+
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).
+			SendString("Backend unavailable")
+	}
+
 	req, err := http.NewRequest(
 		c.Method(),
 		serverAddr+c.OriginalURL(),

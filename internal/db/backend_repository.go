@@ -13,6 +13,7 @@ type ServerRepo interface {
 	IsServerExist(server model.ServerInfo) (bool, error)
 	GetServerByUnqiqId(uniqId int) (*model.ServerInfo, error)
 	UpdateServerStatus(server model.ServerInfo) error
+	GetAllActiveServers() ([]model.ServerInfo, error)
 }
 
 type serverRepo struct{}
@@ -131,4 +132,36 @@ func (s *serverRepo) UpdateServerStatus(server model.ServerInfo) error {
 	}
 
 	return nil
+}
+
+func (s *serverRepo) GetAllActiveServers() ([]model.ServerInfo, error) {
+	var servers []model.ServerInfo
+
+	qryRes := conn.NewConnection().QuerySql("select uniq_id, host_address, port, method, status from serverinfo where status= $1", "active")
+
+	if qryRes.Error != nil {
+		log.Logger.Errorf("Error while getting data from database: %+v\n", qryRes.Error)
+		return servers, qryRes.Error
+	}
+
+	rows := qryRes.Rows
+	defer rows.Close()
+
+	if rows != nil {
+
+		for rows.Next() {
+			var server model.ServerInfo
+			err := rows.Scan(&server.UniqId, &server.HostAddress, &server.Port, &server.Method, &server.Status)
+
+			if err != nil {
+				log.Logger.Errorf("Error while extracting data: %+v\n", err)
+				return servers, err
+			} else {
+				servers = append(servers, server)
+			}
+
+		}
+	}
+
+	return servers, nil
 }
