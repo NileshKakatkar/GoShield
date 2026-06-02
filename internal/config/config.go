@@ -57,3 +57,7 @@ func GetProxyAddr() string {
 		appConfig.Proxy.Port,
 	)
 }
+
+func GetDbConfig() model.DbConfig {
+	return appConfig.DbConfig
+}

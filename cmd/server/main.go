@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"goshield/internal/config"
+	"goshield/internal/conn"
 	"goshield/internal/middleware"
 	"goshield/internal/routes"
 
@@ -37,7 +38,11 @@ func main() {
 	}))
 
 	config.LoadConfig("configs/env_config.conf")
+
+	conn.InitDbConn()
+
 	routes.NewRoutes().ProxyRoutes(app)
+
 	if err := app.Listen(config.GetProxyAddr()); err != nil {
 		log.Logger.Errorf("Error while starting server")
 	}
