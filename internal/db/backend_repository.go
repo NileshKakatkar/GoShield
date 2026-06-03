@@ -12,7 +12,7 @@ type ServerRepo interface {
 	AddServer(server model.ServerInfo) conn.ExecResult
 	IsServerExist(server model.ServerInfo) (bool, error)
 	GetServerByUnqiqId(uniqId int) (*model.ServerInfo, error)
-	UpdateServerStatus(server model.ServerInfo) error
+	UpdateServerStatus(serverId int, status string) error
 	GetAllActiveServers() ([]model.ServerInfo, error)
 }
 
@@ -123,8 +123,8 @@ func (s *serverRepo) GetServerByUnqiqId(uniqId int) (*model.ServerInfo, error) {
 	return &server, nil
 }
 
-func (s *serverRepo) UpdateServerStatus(server model.ServerInfo) error {
-	execRes := conn.NewConnection().ExecSql("update serverinfo set status=$1 where uniq_id=$2", server.Status, server.UniqId)
+func (s *serverRepo) UpdateServerStatus(serverId int, status string) error {
+	execRes := conn.NewConnection().ExecSql("update serverinfo set status=$1 where uniq_id=$2", status, serverId)
 
 	if execRes.Error != nil {
 		log.Logger.Errorf("Error while executing request: %+v\n", execRes.Error)

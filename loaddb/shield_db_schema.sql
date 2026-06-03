@@ -3,7 +3,7 @@ CREATE TABLE serverinfo (
     host_address TEXT NOT NULL,
     port INT,
     method TEXT,
-    status TEXT
+    status TEXT default 'active'
 );
 
 CREATE TABLE admin(

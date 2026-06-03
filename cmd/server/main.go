@@ -10,6 +10,8 @@ import (
 	"goshield/internal/middleware"
 	"goshield/internal/routes"
 
+	healthcheck "goshield/internal/service/healthcheck"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -49,6 +51,8 @@ func main() {
 		log.Logger.Errorf("Shutting down application as there is error while connection to database")
 		return
 	}
+
+	healthcheck.NewHealthChecker(30 * time.Second).Start()
 
 	routes.SetAdminRoutes(app)
 	routes.ProxyRoutes(app)
