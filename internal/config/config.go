@@ -5,6 +5,7 @@ import (
 	"fmt"
 	log "goshield/internal/log"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"goshield/internal/model"
@@ -38,6 +39,23 @@ func GetProxyAddr() string {
 	)
 }
 
+func GetTlsProxyAddr() string {
+	return fmt.Sprintf(
+		"%s:%d",
+		appConfig.Proxy.Host,
+		appConfig.Proxy.TlsPort,
+	)
+}
+
 func GetDbConfig() model.DbConfig {
 	return appConfig.DbConfig
+}
+
+func GetCertificates() model.Certificates {
+	basePath, _ := os.Getwd()
+
+	return model.Certificates{
+		PublicKey:  filepath.Join(basePath, appConfig.Certificates.PublicKey),
+		PrivateKey: filepath.Join(basePath, appConfig.Certificates.PrivateKey),
+	}
 }

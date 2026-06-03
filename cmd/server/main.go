@@ -10,9 +10,9 @@ import (
 	"goshield/internal/middleware"
 	"goshield/internal/routes"
 
-	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 func init() {
@@ -52,6 +52,13 @@ func main() {
 
 	routes.SetAdminRoutes(app)
 	routes.ProxyRoutes(app)
+
+	certs := config.GetCertificates()
+
+	go func() {
+		log.Logger.Infof("TLS Server starting")
+		app.ListenTLS(config.GetTlsProxyAddr(), certs.PublicKey, certs.PrivateKey)
+	}()
 
 	if err := app.Listen(config.GetProxyAddr()); err != nil {
 		log.Logger.Errorf("Error while starting server")
