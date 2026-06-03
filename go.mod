@@ -9,6 +9,7 @@ require (
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lib/pq v1.10.9
 	go.uber.org/zap v1.28.0
+	golang.org/x/crypto v0.14.0
 )
 
 require (

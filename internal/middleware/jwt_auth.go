@@ -15,13 +15,9 @@ func JWTAuth() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		path := c.Path()
 
-		switch {
-		case path == "/login", path == "/register":
+		switch path {
+		case "/login", "/register", "/admin/login":
 			log.Logger.Infof("Skipping validations for login/register request")
-			return c.Next()
-
-		case strings.Contains(path, "/admin"):
-			log.Logger.Infof("Skipping validations for admin request")
 			return c.Next()
 		}
 
@@ -55,16 +51,16 @@ func JWTAuth() fiber.Handler {
 			return []byte(jwtSecret), nil
 		})
 
-		claims := token.Claims.(jwt.MapClaims)
-
-		userID := claims["sub"]
-
 		if err != nil || !token.Valid {
-			log.Logger.Errorf("Authentication failed for: %s\n", userID)
+			log.Logger.Errorf("Authentication failed")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "invalid token",
 			})
 		}
+
+		claims := token.Claims.(jwt.MapClaims)
+
+		userID := claims["sub"]
 
 		c.Locals("userID", userID)
 		log.Logger.Infof("JWT authentication successful for: %s", userID)

@@ -20,4 +20,8 @@ func SetAdminRoutes(app *fiber.App) {
 	admin.Get("/server/details", func(c *fiber.Ctx) error {
 		return serverhandler.NewServerHandler().GetServerDetails(c)
 	})
+
+	admin.Post("/login", func(c *fiber.Ctx) error {
+		return serverhandler.NewAdminMgmt().Authenticate(c)
+	})
 }
