@@ -12,6 +12,7 @@ type ServerHandler interface {
 	GetServersList(c *fiber.Ctx) error
 	AddServerData(c *fiber.Ctx) error
 	GetServerDetails(c *fiber.Ctx) error
+	RemoveServer(c *fiber.Ctx) error
 }
 
 type serverHandler struct{}
@@ -92,6 +93,37 @@ func (s *serverHandler) GetServerDetails(c *fiber.Ctx) error {
 			"response": model.ServerResp{
 				Server:  *server,
 				Message: "Server configuration added",
+			},
+		})
+}
+
+func (s *serverHandler) RemoveServer(c *fiber.Ctx) error {
+	serverId := c.FormValue("serverId")
+	uniqId, _ := strconv.Atoi(serverId)
+	if uniqId <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			fiber.Map{
+				"response": model.ServerResp{
+					Status:  fiber.StatusBadRequest,
+					Message: "Invalid request",
+				},
+			})
+	}
+
+	execRes := db.NewServerRepo().RemoveServer(uniqId)
+
+	status := fiber.StatusOK
+	message := "Server Configuration deleted successfully"
+
+	if execRes.Error != nil {
+		status = fiber.StatusInternalServerError
+		message = "Error while deleting server"
+	}
+
+	return c.Status(status).JSON(
+		fiber.Map{
+			"response": model.ServerResp{
+				Message: message,
 			},
 		})
 }

@@ -14,6 +14,7 @@ type ServerRepo interface {
 	GetServerByUnqiqId(uniqId int) (*model.ServerInfo, error)
 	UpdateServerStatus(serverId int, status string) error
 	GetAllActiveServers() ([]model.ServerInfo, error)
+	RemoveServer(serverId int) conn.ExecResult
 }
 
 type serverRepo struct{}
@@ -164,4 +165,15 @@ func (s *serverRepo) GetAllActiveServers() ([]model.ServerInfo, error) {
 	}
 
 	return servers, nil
+}
+
+func (s *serverRepo) RemoveServer(serverId int) conn.ExecResult {
+	execRes := conn.NewConnection().ExecSql("delete from serverinfo where uniq_id = $1", serverId)
+
+	if execRes.Error != nil {
+		log.Logger.Errorf("Error while removing server: %+v\n", execRes.Error)
+	} else {
+		log.Logger.Infof("Removed server successfully")
+	}
+	return execRes
 }

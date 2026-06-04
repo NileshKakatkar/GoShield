@@ -21,6 +21,10 @@ func SetAdminRoutes(app *fiber.App) {
 		return serverhandler.NewServerHandler().GetServerDetails(c)
 	})
 
+	admin.Post("/delete/server", func(c *fiber.Ctx) error {
+		return serverhandler.NewServerHandler().RemoveServer(c)
+	})
+
 	admin.Post("/login", func(c *fiber.Ctx) error {
 		return serverhandler.NewAdminMgmt().Authenticate(c)
 	})
