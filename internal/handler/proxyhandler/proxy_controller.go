@@ -1,11 +1,10 @@
 package proxyhandler
 
 import (
-	"bytes"
-	routing "goshield/internal/service/routing"
-	"io"
+	"goshield/internal/log"
 	"net/http"
 
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -20,56 +19,33 @@ func NewProxyHandler() ProxyHandler {
 }
 
 func (p *proxyHandler) ForwardRequest(c *fiber.Ctx) error {
-	serverAddr, err := routing.NewLoadBalancer().GetBackendServer()
 
-	if err != nil {
-		return c.Status(fiber.StatusBadGateway).
-			SendString("Backend unavailable")
-	}
+	headers := http.Header{}
 
-	req, err := http.NewRequest(
-		c.Method(),
-		serverAddr+c.OriginalURL(),
-		bytes.NewReader(c.Body()),
-	)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).
-			SendString(err.Error())
-	}
-
-	c.Request().Header.VisitAll(func(k, v []byte) {
-		req.Header.Set(string(k), string(v))
+	c.Request().Header.VisitAll(func(key, value []byte) {
+		headers.Add(string(key), string(value))
 	})
 
-	setProxyHeaders(req, c)
+	addProxyHeaders(&headers, c)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return c.Status(fiber.StatusBadGateway).
-			SendString("Backend unavailable")
-	}
-	defer resp.Body.Close()
+	if websocket.IsWebSocketUpgrade(c) {
+		log.Logger.Infof("Forwarding websocket reqeust")
 
-	for key, values := range resp.Header {
-		for _, value := range values {
-			c.Append(key, value)
-		}
+		originalUrl := c.OriginalURL()
+
+		websocket.New(func(ws *websocket.Conn) {
+			p.ForwardWebsocket(ws, headers, originalUrl)
+		})
+		return nil
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).
-			SendString(err.Error())
-	}
+	log.Logger.Infof("Forwarding http request")
 
-	modifiedBody := body
-
-	return c.Status(resp.StatusCode).Send(modifiedBody)
+	return p.ForwardHttp(c, headers)
 }
 
-func setProxyHeaders(req *http.Request, c *fiber.Ctx) {
-	req.Header.Set("X-Forwarded-For", c.IP())
-	req.Header.Set("X-Forwarded-Proto", c.Protocol())
-	req.Header.Set("X-Forwarded-Host", c.Hostname())
+func addProxyHeaders(headers *http.Header, c *fiber.Ctx) {
+	headers.Add("X-Forwarded-For", c.IP())
+	headers.Add("X-Forwarded-Proto", c.Protocol())
+	headers.Add("X-Forwarded-Host", c.Hostname())
 }
