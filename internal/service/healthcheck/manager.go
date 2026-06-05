@@ -1,12 +1,13 @@
 package helthcheck
 
 import (
+	"context"
 	"goshield/internal/model"
 	"time"
 )
 
 type HealthChecker interface {
-	Start()
+	Start(ctx context.Context)
 	CheckAllServers()
 	CheckServer(server model.ServerInfo)
 }
@@ -19,7 +20,7 @@ func NewHealthChecker(interval time.Duration) HealthChecker {
 	return &healthChecker{interval: interval}
 }
 
-func (h *healthChecker) Start() {
+func (h *healthChecker) Start(ctx context.Context) {
 	ticker := time.NewTicker(h.interval)
 
 	go func() {

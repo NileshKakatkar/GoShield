@@ -34,6 +34,10 @@ func NewConnection() *SqlDb {
 	return &SqlDb{SysDb: sysDb}
 }
 
+func GetDb() *sqlx.DB {
+	return sysDb
+}
+
 func (sqlDb *SqlDb) QuerySql(query string, params ...any) QueryResult {
 	return sqlDb.querySqlData(sqlDb.SysDb, query, params...)
 }

@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"goshield/internal/gbl"
 	log "goshield/internal/log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"goshield/internal/config"
@@ -52,7 +56,9 @@ func main() {
 		return
 	}
 
-	healthcheck.NewHealthChecker(30 * time.Second).Start()
+	ctx, cancel := context.WithCancel(context.Background())
+	
+	healthcheck.NewHealthChecker(30 * time.Second).Start(ctx)
 
 	routes.SetAdminRoutes(app)
 	routes.ProxyRoutes(app)
@@ -64,7 +70,57 @@ func main() {
 		app.ListenTLS(config.GetTlsProxyAddr(), certs.PublicKey, certs.PrivateKey)
 	}()
 
-	if err := app.Listen(config.GetProxyAddr()); err != nil {
-		log.Logger.Errorf("Error while starting server")
+	go func() {
+		if err := app.Listen(config.GetProxyAddr()); err != nil {
+			log.Logger.Errorf("Server stopped: %+v\n", err)
+		}
+	}()
+
+	gracefulShutdown(app, cancel)
+}
+
+func gracefulShutdown(app *fiber.App, healthCtx context.CancelFunc) {
+	sigChan := make(chan os.Signal, 1)
+
+	signal.Notify(
+		sigChan,
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+
+	sig := <-sigChan
+
+	log.Logger.Infof("Received shutdown signal: %v", sig)
+
+	shutdownCtx, cancel := context.WithTimeout(
+		context.Background(),
+		30*time.Second,
+	)
+	defer cancel()
+
+	defer healthCtx()
+
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+
+		if err := app.Shutdown(); err != nil {
+			log.Logger.Errorf("Error during shutdown: %v", err)
+		}
+
+		if db := conn.GetDb(); db != nil {
+			if err := db.Close(); err != nil {
+				log.Logger.Errorf("Error closing DB: %v", err)
+			}
+		}
+	}()
+
+	select {
+	case <-done:
+		log.Logger.Info("Graceful shutdown completed")
+
+	case <-shutdownCtx.Done():
+		log.Logger.Warn("Graceful shutdown timeout reached")
 	}
 }
