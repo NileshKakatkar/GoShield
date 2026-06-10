@@ -31,6 +31,10 @@ func LoadConfig(path string) {
 	}
 }
 
+func GetRedisConfig() model.RedisConfig {
+	return appConfig.RedisConfig
+}
+
 func GetProxyAddr() string {
 	return fmt.Sprintf(
 		"%s:%d",

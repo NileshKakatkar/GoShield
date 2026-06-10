@@ -4,6 +4,7 @@ import (
 	"context"
 	"goshield/internal/gbl"
 	log "goshield/internal/log"
+	"goshield/internal/redis"
 	"os"
 	"os/signal"
 	"syscall"
@@ -56,8 +57,11 @@ func main() {
 		return
 	}
 
+	redisConfig := config.GetRedisConfig()
+	err = redis.InitRedisConn(redisConfig)
+
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	healthcheck.NewHealthChecker(30 * time.Second).Start(ctx)
 
 	routes.SetAdminRoutes(app)
