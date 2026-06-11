@@ -4,19 +4,31 @@ import (
 	"fmt"
 	"goshield/internal/db"
 	"goshield/internal/model"
+	"goshield/internal/redis"
 	"net/http"
 	"time"
 )
 
 func (h *healthChecker) CheckAllServers() {
-	servers, _ := db.NewServerRepo().GetAllServers()
+	servers, _ := redis.NewRedisService().GetAllServers()
+
+	var activeServes []model.ServerInfo
 
 	for _, server := range servers {
-		go h.CheckServer(server)
+		go func() {
+			server = h.CheckServer(server)
+
+			if server.Status == "active" {
+				activeServes = append(servers, server)
+			}
+		}()
 	}
+
+	redis.NewRedisService().UpdateActiveServers(activeServes)
 }
 
-func (h *healthChecker) CheckServer(server model.ServerInfo) {
+func (h *healthChecker) CheckServer(server model.ServerInfo) model.ServerInfo {
+
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 	}
@@ -25,7 +37,8 @@ func (h *healthChecker) CheckServer(server model.ServerInfo) {
 
 	if err != nil {
 		db.NewServerRepo().UpdateServerStatus(server.UniqId, "inactive")
-		return
+		server.Status = "inactive"
+		return server
 	}
 
 	defer resp.Body.Close()
@@ -38,4 +51,7 @@ func (h *healthChecker) CheckServer(server model.ServerInfo) {
 	}
 
 	db.NewServerRepo().UpdateServerStatus(server.UniqId, status)
+
+	server.Status = status
+	return server
 }

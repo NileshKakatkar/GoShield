@@ -88,10 +88,11 @@ func initializeSystem() {
 	err = redis.InitRedisConn(redisConfig)
 
 	if err != nil {
-		return
+	return
 	}
 
 	redis.NewRedisService().LoadActiveServers()
+	redis.NewRedisService().LoadAllServers()
 }
 
 func gracefulShutdown(app *fiber.App, healthCtx context.CancelFunc) {

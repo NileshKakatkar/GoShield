@@ -9,7 +9,7 @@ import (
 type HealthChecker interface {
 	Start(ctx context.Context)
 	CheckAllServers()
-	CheckServer(server model.ServerInfo)
+	CheckServer(server model.ServerInfo) model.ServerInfo
 }
 
 type healthChecker struct {
