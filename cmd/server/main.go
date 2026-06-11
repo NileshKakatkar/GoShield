@@ -49,16 +49,7 @@ func main() {
 		Output:     log.GetAccessLogWriter(),
 	}))
 
-	config.LoadConfig("configs/env_config.conf")
-
-	err := conn.InitDbConn()
-	if err != nil {
-		log.Logger.Errorf("Shutting down application as there is error while connection to database")
-		return
-	}
-
-	redisConfig := config.GetRedisConfig()
-	err = redis.InitRedisConn(redisConfig)
+	initializeSystem()
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -81,6 +72,26 @@ func main() {
 	}()
 
 	gracefulShutdown(app, cancel)
+}
+
+func initializeSystem() {
+
+	config.LoadConfig("configs/env_config.conf")
+
+	err := conn.InitDbConn()
+	if err != nil {
+		log.Logger.Errorf("Shutting down application as there is error while connection to database")
+		return
+	}
+
+	redisConfig := config.GetRedisConfig()
+	err = redis.InitRedisConn(redisConfig)
+
+	if err != nil {
+		return
+	}
+
+	redis.NewRedisService().LoadActiveServers()
 }
 
 func gracefulShutdown(app *fiber.App, healthCtx context.CancelFunc) {

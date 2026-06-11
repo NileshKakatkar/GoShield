@@ -10,16 +10,16 @@ import (
 )
 
 var ctx = context.Background()
-var client *redis.Client
+var redisClient *redis.Client
 
 func InitRedisConn(config model.RedisConfig) error {
 	addr := fmt.Sprintf("%s:%d", config.Host, config.Port)
-	client := redis.NewClient(
+	redisClient = redis.NewClient(
 		&redis.Options{
 			Addr: addr,
 		})
 
-	err := client.Ping(ctx)
+	err := redisClient.Ping(ctx)
 
 	if err != nil {
 		log.Logger.Errorf("Not able to connect to redis server")

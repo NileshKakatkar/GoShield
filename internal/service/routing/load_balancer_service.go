@@ -2,8 +2,8 @@ package service
 
 import (
 	"fmt"
-	"goshield/internal/db"
 	"goshield/internal/model"
+	"goshield/internal/redis"
 	"sync"
 )
 
@@ -26,7 +26,8 @@ func (l *loadBalancer) GetBackendServer() (string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	serversList, _ := db.NewServerRepo().GetAllActiveServers()
+	serversList, _ := redis.NewRedisService().GetAllActiveServers()
+	
 	if len(serversList) == 0 {
 		return "", fmt.Errorf("No backend server present")
 	}
